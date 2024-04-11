@@ -6,8 +6,6 @@ import org.grapheco.lynx.types.composite.{LynxList, LynxMap}
 import org.grapheco.lynx.types.property.{LynxBoolean, LynxFloat, LynxInteger, LynxString}
 import org.grapheco.lynx.types.structural.{LynxElement, LynxNode, LynxPath, LynxRelationship}
 
-import scala.collection.mutable
-
 /**
  * @Author renhao
  * @Description:
@@ -18,7 +16,7 @@ object DataConversion {
 
   def mapNode(node: LynxNode): PandaNode ={
     val props = node.keys.map(x => (x.value, node.property(x).get))
-    PandaNode(node.id.value.toString.toLong, node.labels, props)
+    PandaNode(node.id.toLynxInteger.value, node.labels, props)
   }
 
   def mapRelation(lynxRelationship: LynxRelationship): PandaRelationship = {

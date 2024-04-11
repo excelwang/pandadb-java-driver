@@ -1,6 +1,6 @@
 import PandaDriverTest.client
 import org.grapheco.lynx.types.structural.{LynxNode, LynxPath, LynxRelationship}
-import org.grapheco.pandadb.driver.{DataConversion, JPandaDBDriver, Logging, PandaDBDriver, TimeUtil}
+import org.grapheco.pandadb.driver.{DataConversion, PandaDBDriver}
 import org.junit.jupiter.api.{AfterAll, BeforeAll, Test}
 
 import java.util.logging.Logger
@@ -8,7 +8,7 @@ import java.util.logging.Logger
 object PandaDriverTest{
   //set your pandaDB serverPort and serverHost
   val testConnectionPort = 7600
-  val testConnectionHost = "10.0.82.143"
+  val testConnectionHost = "panda143"
   var client: PandaDBDriver = null
 
   @BeforeAll
@@ -21,7 +21,7 @@ object PandaDriverTest{
   }
 }
 
-class PandaDriverTest extends Logging{
+class PandaDriverTest {
   @Test
   def driverTest(): Unit = {
     client.query(

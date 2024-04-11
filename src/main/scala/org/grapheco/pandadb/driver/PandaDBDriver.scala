@@ -8,6 +8,7 @@ import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer, Lyn
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.pandadb.network.{PandaQueryServiceGrpc, Query}
+import java.util.concurrent.CompletableFuture.completedFuture;
 
 import java.util
 import java.util.concurrent.TimeUnit
