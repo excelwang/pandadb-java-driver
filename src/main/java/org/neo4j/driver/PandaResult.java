@@ -15,13 +15,13 @@ import java.util.stream.Stream;
 
 public class PandaResult implements Result{
 
-    private final Iterator<Query.QueryResponse> response;
+    private final Iterator<Query.QueryResponse> responseIter;
     private final LynxValueDeserializer lynxDeserializer;
     private final ByteBuf byteBuf;//TODO move
-    private Record next = null;
+    private Record preFetchedRecord = null;
 
-    public PandaResult(LynxValueDeserializer lynxDeserializer, ByteBuf byteBuf, Iterator<Query.QueryResponse> response) {
-        this.response = response;
+    public PandaResult(LynxValueDeserializer lynxDeserializer, ByteBuf byteBuf, Iterator<Query.QueryResponse> responseIter) {
+        this.responseIter = responseIter;
         this.lynxDeserializer = lynxDeserializer;
         this.byteBuf = byteBuf;
     }
@@ -35,7 +35,7 @@ public class PandaResult implements Result{
     public List<String> keys() {
         if (hasNext()) {
             peek(); //changed this.next
-            return next.keys();
+            return preFetchedRecord.keys();
         }
         return new LinkedList<String>();
     }
@@ -47,8 +47,8 @@ public class PandaResult implements Result{
      */
     @Override
     public boolean hasNext() {
-        if (next != null) return true;
-        return this.response.hasNext();
+        if (preFetchedRecord != null) return true;
+        return this.responseIter.hasNext();
     }
 
     /**
@@ -59,13 +59,13 @@ public class PandaResult implements Result{
      */
     @Override
     public Record next() {
-        if (next != null) {
-            var ret = next;
-            next = null;
+        if (preFetchedRecord != null) {
+            var ret = preFetchedRecord;
+            preFetchedRecord = null;
             return ret;
         }
-        if (! this.response.hasNext()) throw new NoSuchRecordException("");//TODO really need?
-        return convertResponse(this.response.next());
+        if (! this.responseIter.hasNext()) throw new NoSuchRecordException("");//TODO really need?
+        return convertResponse(this.responseIter.next());
     }
 
     /**
@@ -81,8 +81,8 @@ public class PandaResult implements Result{
     public Record single() throws NoSuchRecordException {
         if(!hasNext()) throw new NoSuchRecordException("");
         var ret = peek();
-        next = null;
-        if(this.response.hasNext()) throw new NoSuchRecordException("");
+        preFetchedRecord = null;
+        if(this.responseIter.hasNext()) throw new NoSuchRecordException("");
         return ret;
     }
 
@@ -94,10 +94,10 @@ public class PandaResult implements Result{
      */
     @Override
     public Record peek() {
-        if (next!=null) return next;
-        if (! this.response.hasNext()) throw new NoSuchRecordException("");
-        next = convertResponse(this.response.next());
-        return next;
+        if (preFetchedRecord !=null) return preFetchedRecord;
+        if (! this.responseIter.hasNext()) throw new NoSuchRecordException("");
+        preFetchedRecord = convertResponse(this.responseIter.next());
+        return preFetchedRecord;
     }
 
     /**
@@ -129,12 +129,12 @@ public class PandaResult implements Result{
     @Override
     public List<Record> list() {
         List<Record> l = new LinkedList<>();
-        if (next!=null) {
-            l.add(next);
-            next = null;
+        if (preFetchedRecord !=null) {
+            l.add(preFetchedRecord);
+            preFetchedRecord = null;
         }
-        while (this.response.hasNext()) {
-            var r = this.response.next();
+        while (this.responseIter.hasNext()) {
+            var r = this.responseIter.next();
             l.add(convertResponse(r));
         }
         return l;
@@ -158,12 +158,12 @@ public class PandaResult implements Result{
     @Override
     public <T> List<T> list(Function<Record, T> mapFunction) {
         List<T> l = new LinkedList<>();
-        if (next!=null) {
-            l.add(mapFunction.apply(next));
-            next = null;
+        if (preFetchedRecord !=null) {
+            l.add(mapFunction.apply(preFetchedRecord));
+            preFetchedRecord = null;
         }
-        while (this.response.hasNext()) {
-            var r = this.response.next();
+        while (this.responseIter.hasNext()) {
+            var r = this.responseIter.next();
             l.add(mapFunction.apply(convertResponse(r)));
         }
         return l;

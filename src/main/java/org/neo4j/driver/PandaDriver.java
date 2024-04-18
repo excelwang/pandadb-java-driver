@@ -4,8 +4,6 @@ import org.grapheco.pandadb.network.PandaQueryServiceGrpc;
 import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.types.TypeSystem;
-import org.neo4j.driver.Logger;
-import org.neo4j.driver.Logging;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 

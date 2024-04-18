@@ -2,8 +2,6 @@ package org.neo4j.driver;
 
 import org.neo4j.driver.internal.InternalTransaction;
 import org.neo4j.driver.internal.async.UnmanagedTransaction;
-import org.neo4j.driver.internal.spi.Connection;
-import org.neo4j.driver.internal.util.Futures;
 import org.neo4j.driver.internal.AbstractQueryRunner;
 import org.grapheco.pandadb.network.PandaQueryServiceGrpc;
 import org.grapheco.lynx.lynxrpc.LynxValueSerializer;
@@ -11,14 +9,19 @@ import org.grapheco.lynx.lynxrpc.LynxValueDeserializer;
 import org.grapheco.lynx.lynxrpc.LynxByteBufFactory;
 import com.google.protobuf.ByteString;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.emptyMap;
 
 public class PandaSession extends AbstractQueryRunner implements Session {
 
     private AtomicBoolean closed = new AtomicBoolean(false);
+
+    private final LynxValueSerializer lynxSerializer = new LynxValueSerializer();
 
     private final PandaQueryServiceGrpc.PandaQueryServiceBlockingStub stub;
 
@@ -45,14 +48,25 @@ public class PandaSession extends AbstractQueryRunner implements Session {
     public Result run(Query query, TransactionConfig config) {
         var requestBuilder = org.grapheco.pandadb.network.Query.QueryRequest.newBuilder();
         requestBuilder.setStatement(query.text());
-        var lynxSerializer = new LynxValueSerializer();//TODO reuse
         var params = query.parameters().asMap();
-        params.forEach((k, v) -> requestBuilder.putParameters(k, ByteString.copyFrom(lynxSerializer.encodeAny(v))));
+        AtomicReference<ByteString> value = null;
+        params.forEach((k, v) -> {
+            requestBuilder.putParameters(k, encodeParamValue(v));
+        });
         var request = requestBuilder.build();
         var response = this.stub.query(request);
         var lynxValueDeserializer = new LynxValueDeserializer();
         var byteBuf = LynxByteBufFactory.getByteBuf();
         return new PandaResult(lynxValueDeserializer, byteBuf, response);
+    }
+
+    private ByteString encodeParamValue(Object paramValue) {
+//        if (paramValue instanceof List<String>) {
+//            lynxSerializer.
+//            lynxSerializer._encodeAnyList((paramValue);
+//        } else {
+        return ByteString.copyFrom(lynxSerializer.encodeAny(paramValue));
+//        }
     }
 
     @Override
