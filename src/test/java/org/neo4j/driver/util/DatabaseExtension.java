@@ -57,6 +57,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.shaded.com.google.common.base.Preconditions;
 import org.testcontainers.utility.MountableFile;
+import scala.xml.dtd.REQUIRED;
 
 public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
     private static final int PANDA_PORT = 7600;
@@ -151,26 +152,26 @@ public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback
         return driver.defaultTypeSystem();
     }
 
-//    public void deleteAndStartNeo4j(Map<String, String> config) {
-//        Map<String, String> updatedConfig = new HashMap<>(defaultConfig);
-//        updatedConfig.putAll(config);
-//
-//        pandaContainer.stop();
-//        pandaContainer = setupPandaContainer(cert, key, updatedConfig);
-//        pandaContainer.start();
-//        if (REQUIRED.toString().equals(config.get(BOLT_TLS_LEVEL))) {
-//            driver = GraphDatabase.driver(
-//                    pandaUri,
-//                    authToken,
-//                    Config.builder()
-//                            .withTrustStrategy(Config.TrustStrategy.trustCustomCertificateSignedBy(cert))
-//                            .withEncryption()
-//                            .build());
-//        } else {
-//            driver = GraphDatabase.driver(pandaUri, authToken);
-//        }
-//        waitForBoltAvailability();
-//    }
+    public void deleteAndStartNeo4j(Map<String, String> config) {
+        Map<String, String> updatedConfig = new HashMap<>(defaultConfig);
+        updatedConfig.putAll(config);
+
+        pandaContainer.stop();
+        pandaContainer = setupPandaContainer(cert, key, updatedConfig);
+        pandaContainer.start();
+        if (REQUIRED.toString().equals(config.get(BOLT_TLS_LEVEL))) {
+            driver = GraphDatabase.driver(
+                    pandaUri,
+                    authToken,
+                    Config.builder()
+                            .withTrustStrategy(Config.TrustStrategy.trustCustomCertificateSignedBy(cert))
+                            .withEncryption()
+                            .build());
+        } else {
+            driver = GraphDatabase.driver(pandaUri, authToken);
+        }
+        waitForBoltAvailability();
+    }
 
     public String addImportFile(String prefix, String suffix, String contents) throws IOException {
         File tmpFile = File.createTempFile(prefix, suffix, null);
@@ -246,7 +247,12 @@ public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback
 //            String[] versions = neo4jVersion.split("\\.");
 //            return parseInt(versions[0]) <= major && parseInt(versions[1]) <= minor;
 //        }
+//        return false;
 //    }
+
+    public boolean isNeo4j44OrEarlier() {
+        return true;
+    }
 
     public static DatabaseExtension getInstance() {
         return instance;
