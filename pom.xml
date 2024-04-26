@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.grapheco</groupId>
             <artifactId>lynx-rpcplus</artifactId>
-            <version>0.1.0-SNAPSHOT-202312201342</version>
+            <version>0.1.0-SNAPSHOT-20240110</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.grapheco</groupId>

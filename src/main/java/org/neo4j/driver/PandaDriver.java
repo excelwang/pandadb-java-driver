@@ -16,6 +16,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class PandaDriver implements Driver{
 
     private AtomicBoolean closed = new AtomicBoolean(false);
+    private final Logging logging;
     private final Logger log;
     private final ManagedChannel channel;
     private PandaQueryServiceGrpc.PandaQueryServiceStub stub = null;
@@ -23,6 +24,7 @@ public class PandaDriver implements Driver{
 
     public PandaDriver(String host, int port, Logging logging){
         this.channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build();
+        this.logging = logging;
         this.log = logging.getLog(getClass());
     }
 
@@ -52,7 +54,7 @@ public class PandaDriver implements Driver{
 
     @Override
     public Session session(SessionConfig sessionConfig) {
-        return new PandaSession(getBlockingStub());
+        return new PandaSession(getBlockingStub(), this.logging);
     }
 
     @Override

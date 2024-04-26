@@ -110,7 +110,7 @@ class ResultStreamIT {
     @Test
     void shouldBeAbleToReuseSessionAfterFailure() {
         // Given
-        assertThrows(Exception.class, () -> session.run("INVALID"));
+        assertThrows(Exception.class, () -> session.run("INVALID"));//TODO trans exception from server to client
 
         // When
         Result res2 = session.run("RETURN 1");
@@ -177,7 +177,7 @@ class ResultStreamIT {
 
         ClientException e = assertThrows(
                 ClientException.class,
-                () -> session.run("CYPHER runtime=interpreted UNWIND range(5, 0, -1) AS x RETURN x / x").stream()
+                () -> session.run("UNWIND range(5, 0, -1) AS x RETURN x / x").stream()
                         .forEach(record -> seen.add(record.get(0).asInt())));
 
         assertThat(e.getMessage(), containsString("/ by zero"));

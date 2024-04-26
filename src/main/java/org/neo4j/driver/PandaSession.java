@@ -9,7 +9,7 @@ import org.grapheco.lynx.lynxrpc.LynxValueDeserializer;
 import org.grapheco.lynx.lynxrpc.LynxByteBufFactory;
 import com.google.protobuf.ByteString;
 
-import java.util.Collection;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,8 +25,11 @@ public class PandaSession extends AbstractQueryRunner implements Session {
 
     private final PandaQueryServiceGrpc.PandaQueryServiceBlockingStub stub;
 
-    public PandaSession(PandaQueryServiceGrpc.PandaQueryServiceBlockingStub stub) {
+    private final Logging logging;
+
+    public PandaSession(PandaQueryServiceGrpc.PandaQueryServiceBlockingStub stub, Logging logging) {
         this.stub = stub;
+        this.logging = logging;
     }
 
     @Override
@@ -49,7 +52,6 @@ public class PandaSession extends AbstractQueryRunner implements Session {
         var requestBuilder = org.grapheco.pandadb.network.Query.QueryRequest.newBuilder();
         requestBuilder.setStatement(query.text());
         var params = query.parameters().asMap();
-        AtomicReference<ByteString> value = null;
         params.forEach((k, v) -> {
             requestBuilder.putParameters(k, encodeParamValue(v));
         });
@@ -57,16 +59,14 @@ public class PandaSession extends AbstractQueryRunner implements Session {
         var response = this.stub.query(request);
         var lynxValueDeserializer = new LynxValueDeserializer();
         var byteBuf = LynxByteBufFactory.getByteBuf();
-        return new PandaResult(lynxValueDeserializer, byteBuf, response);
+        return new PandaResult(lynxValueDeserializer, byteBuf, response, this.logging);
     }
 
     private ByteString encodeParamValue(Object paramValue) {
-//        if (paramValue instanceof List<String>) {
-//            lynxSerializer.
-//            lynxSerializer._encodeAnyList((paramValue);
-//        } else {
+        if (paramValue instanceof List) {
+            paramValue = ((List<?>) paramValue).toArray();//TODO change lynx source code.
+        }
         return ByteString.copyFrom(lynxSerializer.encodeAny(paramValue));
-//        }
     }
 
     @Override

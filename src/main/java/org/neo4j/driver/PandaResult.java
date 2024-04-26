@@ -7,23 +7,29 @@ import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
 
 import io.grpc.netty.shaded.io.netty.buffer.ByteBuf;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class PandaResult implements Result{
 
     private final Iterator<Query.QueryResponse> responseIter;
     private final LynxValueDeserializer lynxDeserializer;
-    private final ByteBuf byteBuf;//TODO move
-    private Record preFetchedRecord = null;
 
-    public PandaResult(LynxValueDeserializer lynxDeserializer, ByteBuf byteBuf, Iterator<Query.QueryResponse> responseIter) {
+    private List<String> keys = null;
+
+    private final Logging logging;
+    private final ByteBuf byteBuf;//TODO move
+    private Record prefetchedRecord = null;
+
+    public PandaResult(LynxValueDeserializer lynxDeserializer, ByteBuf byteBuf, Iterator<Query.QueryResponse> responseIter, Logging logging) {
         this.responseIter = responseIter;
         this.lynxDeserializer = lynxDeserializer;
         this.byteBuf = byteBuf;
+        this.logging = logging;
+        this.keys = hasNext()? prefetchedRecord.keys(): new LinkedList<String>();
     }
 
     /**
@@ -33,11 +39,7 @@ public class PandaResult implements Result{
      */
     @Override
     public List<String> keys() {
-        if (hasNext()) {
-            peek(); //changed this.next
-            return preFetchedRecord.keys();
-        }
-        return new LinkedList<String>();
+        return this.keys;
     }
 
     /**
@@ -47,8 +49,28 @@ public class PandaResult implements Result{
      */
     @Override
     public boolean hasNext() {
-        if (preFetchedRecord != null) return true;
-        return this.responseIter.hasNext();
+        if (prefetchedRecord != null) return true;
+        try {
+            if (! this.responseIter.hasNext()) return false;
+        } catch (io.grpc.StatusRuntimeException e) {
+            throw new org.neo4j.driver.exceptions.ClientException(e.getMessage());
+        }
+        var re = convertResponse(this.responseIter.next());
+        if (re==null) return false;
+        this.prefetchedRecord = re;
+        return true;
+    }
+
+    /**
+     * Investigate the next upcoming record without moving forward in the result.
+     *
+     * @return the next record
+     * @throws NoSuchRecordException if there is no record left in the stream
+     */
+    @Override
+    public Record peek() {
+        if (hasNext()) return prefetchedRecord;
+        throw new NoSuchRecordException("");
     }
 
     /**
@@ -59,13 +81,12 @@ public class PandaResult implements Result{
      */
     @Override
     public Record next() {
-        if (preFetchedRecord != null) {
-            var ret = preFetchedRecord;
-            preFetchedRecord = null;
+        if (prefetchedRecord != null) {
+            var ret = prefetchedRecord;
+            prefetchedRecord = null;
             return ret;
         }
-        if (! this.responseIter.hasNext()) throw new NoSuchRecordException("");//TODO really need?
-        return convertResponse(this.responseIter.next());
+        throw new NoSuchRecordException("");//TODO really need?
     }
 
     /**
@@ -80,24 +101,9 @@ public class PandaResult implements Result{
     @Override
     public Record single() throws NoSuchRecordException {
         if(!hasNext()) throw new NoSuchRecordException("");
-        var ret = peek();
-        preFetchedRecord = null;
-        if(this.responseIter.hasNext()) throw new NoSuchRecordException("");
+        var ret = next();
+        if(hasNext()) throw new NoSuchRecordException("");
         return ret;
-    }
-
-    /**
-     * Investigate the next upcoming record without moving forward in the result.
-     *
-     * @return the next record
-     * @throws NoSuchRecordException if there is no record left in the stream
-     */
-    @Override
-    public Record peek() {
-        if (preFetchedRecord !=null) return preFetchedRecord;
-        if (! this.responseIter.hasNext()) throw new NoSuchRecordException("");
-        preFetchedRecord = convertResponse(this.responseIter.next());
-        return preFetchedRecord;
     }
 
     /**
@@ -109,7 +115,9 @@ public class PandaResult implements Result{
      */
     @Override
     public Stream<Record> stream() {
-        return Stream.empty();//TODO ??
+        Spliterator<Record> spliterator =
+                Spliterators.spliteratorUnknownSize(this, Spliterator.IMMUTABLE | Spliterator.ORDERED);
+        return StreamSupport.stream(spliterator, false);
     }
 
     /**
@@ -129,13 +137,8 @@ public class PandaResult implements Result{
     @Override
     public List<Record> list() {
         List<Record> l = new LinkedList<>();
-        if (preFetchedRecord !=null) {
-            l.add(preFetchedRecord);
-            preFetchedRecord = null;
-        }
-        while (this.responseIter.hasNext()) {
-            var r = this.responseIter.next();
-            l.add(convertResponse(r));
+        while (hasNext()) {
+            l.add(next());
         }
         return l;
     }
@@ -158,13 +161,8 @@ public class PandaResult implements Result{
     @Override
     public <T> List<T> list(Function<Record, T> mapFunction) {
         List<T> l = new LinkedList<>();
-        if (preFetchedRecord !=null) {
-            l.add(mapFunction.apply(preFetchedRecord));
-            preFetchedRecord = null;
-        }
-        while (this.responseIter.hasNext()) {
-            var r = this.responseIter.next();
-            l.add(mapFunction.apply(convertResponse(r)));
+        while (hasNext()) {
+            l.add(mapFunction.apply(next()));
         }
         return l;
     }
@@ -184,7 +182,15 @@ public class PandaResult implements Result{
     }
 
     private Record convertResponse(Query.QueryResponse r) {
-        var map =  (LynxMap) lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes().toByteArray()));
-        return new PandaRecord(map.value());
+        var lv = lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes().toByteArray()));
+        if (lv instanceof LynxMap) {
+            var map = (LynxMap) lv;
+            if (map.value().isEmpty()) return null;
+            return new PandaRecord(map.value());
+        }
+        else {
+            logging.getLog(getClass()).warn("QueryResponse is not a Map");//TODO no output in junit tests
+            return  null;
+        }
     }
 }
