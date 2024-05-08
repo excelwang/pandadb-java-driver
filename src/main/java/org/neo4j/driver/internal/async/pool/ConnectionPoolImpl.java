@@ -241,6 +241,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
     }
 
     private CompletionStage<Void> closePool(ExecutorService pool) {
+        log.info("closePool");
         return CompletableFuture.runAsync(() -> {pool.shutdown();
             try {
                 pool.awaitTermination(awaitTerminationTimeout, TimeUnit.SECONDS);

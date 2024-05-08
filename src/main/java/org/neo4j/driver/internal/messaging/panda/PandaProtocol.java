@@ -163,7 +163,7 @@ public class PandaProtocol implements BoltProtocol {
 //        PullAllResponseHandler pullAllHandler =
 //                newBoltV4AutoPullHandler(query, runHandler, connection, bookmarkHolder, tx, fetchSize);
 //        PullResponseHandler pullHandler = newBoltV4BasicPullHandler(query, runHandler, connection, bookmarkHolder, tx);
-        return new PandaResultCursorFactory(pr);//, runFuture);
+        return new PandaResultCursorFactory(pc, pr);//, runFuture);
     }
 
 

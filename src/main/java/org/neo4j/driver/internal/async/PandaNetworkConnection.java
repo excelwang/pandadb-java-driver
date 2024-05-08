@@ -85,7 +85,7 @@ public class PandaNetworkConnection implements Connection {
         this.serverAddress = PandaChannelAttributes.serverAddress(channel);
         this.serverVersion = PandaChannelAttributes.serverVersion(channel);
         this.protocol = PandaProtocol.INSTANCE;
-        this.releaseFuture = new CompletableFuture<>();
+        this.releaseFuture = CompletableFuture.runAsync(() -> {}, pool);
         this.clock = clock;
         this.metricsListener = metricsListener;
         this.inUseEvent = metricsListener.createListenerEvent();
@@ -93,6 +93,8 @@ public class PandaNetworkConnection implements Connection {
                 PandaChannelAttributes.connectionReadTimeout(channel).orElse(null);
         metricsListener.afterConnectionCreated(poolId(this.channel), this.inUseEvent);
     }
+
+    public ExecutorService getPool() {return this.pool;}
 
     @Override
     public boolean isOpen() {
@@ -174,6 +176,7 @@ public class PandaNetworkConnection implements Connection {
             PandaChannelAttributes.purgeChannel(channel);
             metricsListener.afterConnectionReleased(poolId(this.channel), this.inUseEvent);
         }
+//        pool.shutdownNow();
         return releaseFuture;
     }
 
@@ -181,7 +184,7 @@ public class PandaNetworkConnection implements Connection {
     public void terminateAndRelease(String reason) {
         if (status.compareAndSet(Status.OPEN, Status.TERMINATED)) {
             setTerminationReason(channel, reason);
-            CompletableFuture.completedStage(channel.shutdownNow())
+            CompletableFuture.runAsync(() -> channel.shutdownNow(), pool)
                 .exceptionally(throwable -> null)
                 .whenComplete((ignored, throwable) -> {
                     PandaChannelAttributes.purgeChannel(channel);

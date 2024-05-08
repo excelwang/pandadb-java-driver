@@ -66,12 +66,13 @@ public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback
     }
 
     @Override
-    public void afterEach(ExtensionContext context) throws Exception {
+    public void afterEach(ExtensionContext context) throws Exception {//todo notworking
         System.out.println("afterEach");
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
+        System.out.println("afterAll");
 //        deleteAndStartNeo4j(Collections.emptyMap());
     }
 

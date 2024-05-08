@@ -43,10 +43,6 @@ public class PandaAsyncResultCursor implements AsyncResultCursor {
         this.result = result;
     }
 
-    public PandaResult getResult() {
-        return result;
-    }
-
     @Override
     public List<String> keys() {
         return result.keys();
@@ -104,7 +100,8 @@ public class PandaAsyncResultCursor implements AsyncResultCursor {
     @Override
     public CompletionStage<Throwable> discardAllFailureAsync() {
         // runError has priority over other errors and is expected to have been reported to user by now
-        return consumeAsync().handle((summary, error) -> runError != null ? null : error);
+//        return consumeAsync().handle((summary, error) -> runError != null ? null : error);
+        return completedFuture(null);
     }
 
     @Override

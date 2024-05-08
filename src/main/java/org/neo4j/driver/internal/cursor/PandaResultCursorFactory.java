@@ -20,8 +20,10 @@ package org.neo4j.driver.internal.cursor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
 
 import org.neo4j.driver.PandaResult;
+import org.neo4j.driver.internal.async.PandaNetworkConnection;
 
 import static java.util.Objects.requireNonNull;
 
@@ -31,21 +33,24 @@ import static java.util.Objects.requireNonNull;
 public class PandaResultCursorFactory implements ResultCursorFactory {//TODO support valillan driver
 
     private final PandaResult result;
+    private final ExecutorService pool;
 
 //    private final CompletableFuture<Void> runFuture;
 
     public PandaResultCursorFactory(
+            PandaNetworkConnection pc,
             PandaResult result) {
 //            CompletableFuture<Void> runFuture) {
         requireNonNull(result);
 //        requireNonNull(runFuture);
+        this.pool = pc.getPool();
         this.result = result;
 //        this.runFuture = runFuture;
     }
 
     @Override
     public CompletionStage<AsyncResultCursor> asyncResult() {//todo add batch pull
-        return CompletableFuture.completedStage(new DisposableAsyncResultCursor(new PandaAsyncResultCursor(null, result)));
+        return CompletableFuture.supplyAsync(() -> new DisposableAsyncResultCursor(new PandaAsyncResultCursor(null, result)), pool);
 //        return runFuture.handle((ignored, error) ->
 //                );
     }
