@@ -29,7 +29,7 @@ import java.util.concurrent.CompletionStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AsyncWriteQuery<C extends AbstractContext> extends AbstractAsyncQuery<C> {
-    private AbstractStressTestBase<C> stressTest;
+    private final AbstractStressTestBase<C> stressTest;
 
     public AsyncWriteQuery(AbstractStressTestBase<C> stressTest, Driver driver, boolean useBookmark) {
         super(driver, useBookmark);

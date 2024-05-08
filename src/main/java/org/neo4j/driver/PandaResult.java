@@ -1,12 +1,8 @@
 package org.neo4j.driver;
 
-import org.grapheco.lynx.lynxrpc.LynxValueDeserializer;
-import org.grapheco.lynx.types.composite.LynxMap;
 import org.grapheco.pandadb.network.Query;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.summary.ResultSummary;
-
-import io.grpc.netty.shaded.io.netty.buffer.ByteBuf;
 
 import java.util.*;
 import java.util.function.Function;
@@ -16,19 +12,15 @@ import java.util.stream.StreamSupport;
 public class PandaResult implements Result{
 
     private final Iterator<Query.QueryResponse> responseIter;
-    private final LynxValueDeserializer lynxDeserializer;
 
     private List<String> keys = null;
 
-    private final Logging logging;
-    private final ByteBuf byteBuf;//TODO move
     private Record prefetchedRecord = null;
 
-    public PandaResult(LynxValueDeserializer lynxDeserializer, ByteBuf byteBuf, Iterator<Query.QueryResponse> responseIter, Logging logging) {
+    public static final PandaResult NULL = new PandaResult(Collections.emptyIterator());
+
+    public PandaResult(Iterator<Query.QueryResponse> responseIter) {
         this.responseIter = responseIter;
-        this.lynxDeserializer = lynxDeserializer;
-        this.byteBuf = byteBuf;
-        this.logging = logging;
         this.keys = hasNext()? prefetchedRecord.keys(): new LinkedList<String>();
     }
 
@@ -55,7 +47,7 @@ public class PandaResult implements Result{
         } catch (io.grpc.StatusRuntimeException e) {
             throw new org.neo4j.driver.exceptions.ClientException(e.getMessage());
         }
-        var re = convertResponse(this.responseIter.next());
+        var re = PandaConverter.convertResponse(this.responseIter.next());
         if (re==null) return false;
         this.prefetchedRecord = re;
         return true;
@@ -178,19 +170,8 @@ public class PandaResult implements Result{
      */
     @Override
     public ResultSummary consume() {
+        while (hasNext()) {next();}
         return null;
     }
 
-    private Record convertResponse(Query.QueryResponse r) {
-        var lv = lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes().toByteArray()));
-        if (lv instanceof LynxMap) {
-            var map = (LynxMap) lv;
-            if (map.value().isEmpty()) return null;
-            return new PandaRecord(map.value());
-        }
-        else {
-            logging.getLog(getClass()).warn("QueryResponse is not a Map");//TODO no output in junit tests
-            return  null;
-        }
-    }
 }

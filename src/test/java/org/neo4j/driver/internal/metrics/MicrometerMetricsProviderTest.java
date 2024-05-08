@@ -18,6 +18,7 @@
  */
 package org.neo4j.driver.internal.metrics;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,7 @@ class MicrometerMetricsProviderTest {
         Metrics metrics = provider.metrics();
 
         // THEN
-        assertTrue(metrics instanceof MicrometerMetrics);
+        assertInstanceOf(MicrometerMetrics.class, metrics);
     }
 
     @Test
@@ -47,6 +48,6 @@ class MicrometerMetricsProviderTest {
         MetricsListener listener = provider.metricsListener();
 
         // THEN
-        assertTrue(listener instanceof MicrometerMetrics);
+        assertInstanceOf(MicrometerMetrics.class, listener);
     }
 }

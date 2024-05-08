@@ -158,7 +158,7 @@ public class FileTools {
     public static void updateProperty(File propFile, String key, String value) throws IOException {
         Map<String, String> propertiesMap = new HashMap<>(1);
         propertiesMap.put(key, value);
-        updateProperties(propFile, propertiesMap, Collections.<String>emptySet());
+        updateProperties(propFile, propertiesMap, Collections.emptySet());
     }
 
     public static void updateProperties(File propFile, Map<String, String> propertiesMap, Set<String> excludes)

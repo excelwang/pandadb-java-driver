@@ -130,7 +130,7 @@ class ExtractTest {
     @Test
     void testFields() {
         // GIVEN
-        InternalRecord record = new InternalRecord(Arrays.asList("k1"), new Value[] {value(42)});
+        InternalRecord record = new InternalRecord(List.of("k1"), new Value[] {value(42)});
         // WHEN
         List<Pair<String, Integer>> fields = Extract.fields(record, Value::asInt);
 

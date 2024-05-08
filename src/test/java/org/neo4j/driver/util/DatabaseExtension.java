@@ -22,15 +22,11 @@ import org.junit.jupiter.api.extension.*;
 import org.neo4j.driver.*;
 import org.neo4j.driver.internal.BoltServerAddress;
 import org.neo4j.driver.types.TypeSystem;
-import org.testcontainers.utility.MountableFile;
-import scala.xml.dtd.REQUIRED;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,12 +36,12 @@ import static org.neo4j.driver.util.Neo4jSettings.BoltTlsLevel.OPTIONAL;
 public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback, AfterEachCallback, AfterAllCallback {
 
     private static final DatabaseExtension instance;
-    private static final URI pandaUri = URI.create("panda://localhost:7601");
+    private static final URI pandaUri = URI.create("bolt://localhost:7601");
     private static final AuthToken authToken;
 
     private static final Map<String, String> defaultConfig;
 
-    private static Driver driver;
+    private static final Driver driver;
 
     static {
         instance = new DatabaseExtension();
@@ -65,12 +61,13 @@ public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        TestUtil.cleanDb(driver);
+//        TestUtil.cleanDb(driver);
+        System.out.println("beforeEach");
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-//        System.out.println(pandaContainer.getLogs());
+        System.out.println("afterEach");
     }
 
     @Override

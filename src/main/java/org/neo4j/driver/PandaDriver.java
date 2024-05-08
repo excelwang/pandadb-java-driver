@@ -15,7 +15,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class PandaDriver implements Driver{
 
-    private AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicBoolean closed = new AtomicBoolean(false);
     private final Logging logging;
     private final Logger log;
     private final ManagedChannel channel;
@@ -54,7 +54,9 @@ public class PandaDriver implements Driver{
 
     @Override
     public Session session(SessionConfig sessionConfig) {
-        return new PandaSession(getBlockingStub(), this.logging);
+
+//        return new PandaSession(getBlockingStub(), this.logging);
+        return null;
     }
 
     @Override

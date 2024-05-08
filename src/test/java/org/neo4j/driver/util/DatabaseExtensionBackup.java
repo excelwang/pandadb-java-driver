@@ -114,7 +114,7 @@ public class DatabaseExtensionBackup implements ExecutionCondition, BeforeEachCa
         Ports.Binding[] binding = new Ports.Binding[0];
         InspectContainerResponse containerInfo = pandaContainer.getContainerInfo();
         if (containerInfo != null) {
-            binding = (Ports.Binding[])containerInfo.getNetworkSettings().getPorts().getBindings().get(new ExposedPort(originalPort));
+            binding = containerInfo.getNetworkSettings().getPorts().getBindings().get(new ExposedPort(originalPort));
         }
 
         if (binding != null && binding.length > 0 && binding[0] != null) {

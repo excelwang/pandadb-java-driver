@@ -30,7 +30,7 @@ import org.neo4j.driver.async.AsyncSession;
  * A little utility for integration testing, this provides tests with sessions they can work with.
  * If you want more direct control, have a look at {@link DatabaseExtension} instead.
  */
-public class DriverExtension extends DatabaseExtension implements BeforeEachCallback, AfterEachCallback {
+public class DriverExtension extends DatabaseExtension implements BeforeEachCallback, AfterEachCallback {//TODO remove
     private AsyncSession asyncSession;
     private Session session;
 

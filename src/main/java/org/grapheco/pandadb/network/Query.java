@@ -78,7 +78,7 @@ public final class Query {
     }
 
     @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
+    public com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
     }
@@ -131,7 +131,7 @@ public final class Query {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
     getDescriptor() {
       return org.grapheco.pandadb.network.Query.internal_static_org_grapheco_pandadb_network_QueryRequest_descriptor;
     }
@@ -194,7 +194,7 @@ public final class Query {
       static final com.google.protobuf.MapEntry<
               java.lang.String, com.google.protobuf.ByteString> defaultEntry =
               com.google.protobuf.MapEntry
-                      .<java.lang.String, com.google.protobuf.ByteString>newDefaultInstance(
+                      .newDefaultInstance(
                               org.grapheco.pandadb.network.Query.internal_static_org_grapheco_pandadb_network_QueryRequest_ParametersEntry_descriptor,
                               com.google.protobuf.WireFormat.FieldType.STRING,
                               "",
@@ -266,7 +266,7 @@ public final class Query {
     }
 
     private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
+    public boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
@@ -434,7 +434,7 @@ public final class Query {
             com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
             // @@protoc_insertion_point(builder_implements:org.grapheco.pandadb.network.QueryRequest)
             org.grapheco.pandadb.network.Query.QueryRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
         return org.grapheco.pandadb.network.Query.internal_static_org_grapheco_pandadb_network_QueryRequest_descriptor;
       }
@@ -521,30 +521,30 @@ public final class Query {
       }
 
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
       public Builder setField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
       public Builder clearField(
               com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
       public Builder clearOneof(
               com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
       public Builder setRepeatedField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               int index, Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
       public Builder addRepeatedField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof org.grapheco.pandadb.network.Query.QueryRequest) {
@@ -567,7 +567,7 @@ public final class Query {
         return this;
       }
 
-      public final boolean isInitialized() {
+      public boolean isInitialized() {
         return true;
       }
 
@@ -671,8 +671,8 @@ public final class Query {
       }
       private com.google.protobuf.MapField<java.lang.String, com.google.protobuf.ByteString>
       internalGetMutableParameters() {
-        onChanged();;
-        if (parameters_ == null) {
+        onChanged();
+          if (parameters_ == null) {
           parameters_ = com.google.protobuf.MapField.newMapField(
                   ParametersDefaultEntryHolder.defaultEntry);
         }
@@ -777,12 +777,12 @@ public final class Query {
         getMutableParameters().putAll(values);
         return this;
       }
-      public final Builder setUnknownFields(
+      public Builder setUnknownFields(
               final com.google.protobuf.UnknownFieldSet unknownFields) {
         return this;
       }
 
-      public final Builder mergeUnknownFields(
+      public Builder mergeUnknownFields(
               final com.google.protobuf.UnknownFieldSet unknownFields) {
         return this;
       }
@@ -851,7 +851,7 @@ public final class Query {
     }
 
     @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
+    public com.google.protobuf.UnknownFieldSet
     getUnknownFields() {
       return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
     }
@@ -891,7 +891,7 @@ public final class Query {
         makeExtensionsImmutable();
       }
     }
-    public static final com.google.protobuf.Descriptors.Descriptor
+    public static com.google.protobuf.Descriptors.Descriptor
     getDescriptor() {
       return org.grapheco.pandadb.network.Query.internal_static_org_grapheco_pandadb_network_QueryResponse_descriptor;
     }
@@ -913,7 +913,7 @@ public final class Query {
     }
 
     private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
+    public boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
@@ -1057,7 +1057,7 @@ public final class Query {
             com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
             // @@protoc_insertion_point(builder_implements:org.grapheco.pandadb.network.QueryResponse)
             org.grapheco.pandadb.network.Query.QueryResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
+      public static com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
         return org.grapheco.pandadb.network.Query.internal_static_org_grapheco_pandadb_network_QueryResponse_descriptor;
       }
@@ -1116,30 +1116,30 @@ public final class Query {
       }
 
       public Builder clone() {
-        return (Builder) super.clone();
+        return super.clone();
       }
       public Builder setField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               Object value) {
-        return (Builder) super.setField(field, value);
+        return super.setField(field, value);
       }
       public Builder clearField(
               com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return (Builder) super.clearField(field);
+        return super.clearField(field);
       }
       public Builder clearOneof(
               com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return (Builder) super.clearOneof(oneof);
+        return super.clearOneof(oneof);
       }
       public Builder setRepeatedField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               int index, Object value) {
-        return (Builder) super.setRepeatedField(field, index, value);
+        return super.setRepeatedField(field, index, value);
       }
       public Builder addRepeatedField(
               com.google.protobuf.Descriptors.FieldDescriptor field,
               Object value) {
-        return (Builder) super.addRepeatedField(field, value);
+        return super.addRepeatedField(field, value);
       }
       public Builder mergeFrom(com.google.protobuf.Message other) {
         if (other instanceof org.grapheco.pandadb.network.Query.QueryResponse) {
@@ -1159,7 +1159,7 @@ public final class Query {
         return this;
       }
 
-      public final boolean isInitialized() {
+      public boolean isInitialized() {
         return true;
       }
 
@@ -1209,12 +1209,12 @@ public final class Query {
         onChanged();
         return this;
       }
-      public final Builder setUnknownFields(
+      public Builder setUnknownFields(
               final com.google.protobuf.UnknownFieldSet unknownFields) {
         return this;
       }
 
-      public final Builder mergeUnknownFields(
+      public Builder mergeUnknownFields(
               final com.google.protobuf.UnknownFieldSet unknownFields) {
         return this;
       }

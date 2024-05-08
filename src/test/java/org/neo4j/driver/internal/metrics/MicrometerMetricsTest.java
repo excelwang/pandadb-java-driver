@@ -18,8 +18,7 @@
  */
 package org.neo4j.driver.internal.metrics;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
@@ -201,7 +200,7 @@ class MicrometerMetricsTest {
         ListenerEvent<?> event = metrics.createListenerEvent();
 
         // THEN
-        assertTrue(event instanceof MicrometerTimerListenerEvent);
+        assertInstanceOf(MicrometerTimerListenerEvent.class, event);
     }
 
     @Test

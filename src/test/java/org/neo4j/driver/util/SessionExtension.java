@@ -36,7 +36,7 @@ import org.neo4j.driver.Value;
  * A little utility for integration testing, this provides tests with a session they can work with.
  * If you want more direct control, have a look at {@link DatabaseExtension} instead.
  */
-public class SessionExtension extends DatabaseExtension implements Session, BeforeEachCallback, AfterEachCallback {
+public class SessionExtension extends DatabaseExtension implements Session, BeforeEachCallback, AfterEachCallback {//TODO remove
     private Session realSession;
 
     @Override

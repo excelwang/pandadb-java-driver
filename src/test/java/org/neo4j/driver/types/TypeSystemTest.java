@@ -45,18 +45,18 @@ class TypeSystemTest {
     private final InternalNode node = new InternalNode(42L);
     private final InternalRelationship relationship = new InternalRelationship(42L, 42L, 43L, "T");
 
-    private Value integerValue = value(13);
-    private Value floatValue = value(13.1);
-    private Value stringValue = value("Lalala ");
-    private Value nodeValue = new NodeValue(node);
-    private Value relationshipValue = new RelationshipValue(relationship);
-    private Value mapValue = value(Collections.singletonMap("type", "r"));
-    private Value pathValue = new PathValue(new InternalPath(Arrays.<Entity>asList(node, relationship, node)));
-    private Value booleanValue = value(true);
-    private Value listValue = value(Arrays.asList(1, 2, 3));
-    private Value nullValue = value((Object) null);
+    private final Value integerValue = value(13);
+    private final Value floatValue = value(13.1);
+    private final Value stringValue = value("Lalala ");
+    private final Value nodeValue = new NodeValue(node);
+    private final Value relationshipValue = new RelationshipValue(relationship);
+    private final Value mapValue = value(Collections.singletonMap("type", "r"));
+    private final Value pathValue = new PathValue(new InternalPath(Arrays.asList(node, relationship, node)));
+    private final Value booleanValue = value(true);
+    private final Value listValue = value(Arrays.asList(1, 2, 3));
+    private final Value nullValue = value((Object) null);
 
-    private InternalTypeSystem typeSystem = TYPE_SYSTEM;
+    private final InternalTypeSystem typeSystem = TYPE_SYSTEM;
 
     private TypeVerifier newTypeVerifierFor(Type type) {
         HashSet<Value> allValues = new HashSet<>();

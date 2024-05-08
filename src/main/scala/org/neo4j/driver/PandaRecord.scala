@@ -110,7 +110,7 @@ class PandaRecord(private val lynxValueMap: Map[String, LynxValue]) extends Reco
       get(this.keys.get(index))
     } catch{
       case e: IndexOutOfBoundsException => Values.NULL
-      case _ => throw new ClientException("")
+      case t: Throwable => throw new ClientException(t.getMessage)
     }
   }
 

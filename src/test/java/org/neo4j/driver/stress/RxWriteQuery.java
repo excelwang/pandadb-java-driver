@@ -31,7 +31,7 @@ import java.util.concurrent.CompletionStage;
 import static org.junit.Assert.assertEquals;
 
 public class RxWriteQuery<C extends AbstractContext> extends AbstractRxQuery<C> {
-    private AbstractStressTestBase<C> stressTest;
+    private final AbstractStressTestBase<C> stressTest;
 
     public RxWriteQuery(AbstractStressTestBase<C> stressTest, Driver driver, boolean useBookmark) {
         super(driver, useBookmark);

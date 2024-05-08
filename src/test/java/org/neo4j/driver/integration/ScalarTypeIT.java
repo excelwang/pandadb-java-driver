@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.neo4j.driver.Values.parameters;
 
@@ -62,7 +63,7 @@ class ScalarTypeIT {
                 Arguments.of("RETURN ['hello'] as v", new ListValue(Values.value("hello"))),
                 Arguments.of("RETURN [] as v", new ListValue()),
                 Arguments.of("RETURN {k:'hello'} as v", parameters("k", Values.value("hello"))),
-                Arguments.of("RETURN {} as v", new MapValue(Collections.<String, Value>emptyMap())));
+                Arguments.of("RETURN {} as v", new MapValue(Collections.emptyMap())));
     }
 
     @ParameterizedTest
@@ -171,7 +172,7 @@ class ScalarTypeIT {
     @MethodSource("listToTest")
     void shouldEchoList(Value input) {
         // When & Then
-        assertTrue(input instanceof ListValue);
+        assertInstanceOf(ListValue.class, input);
         verifyCanEncodeAndDecode(input);
     }
 
@@ -180,7 +181,7 @@ class ScalarTypeIT {
         Value input = Values.value(toValueStream(listToTest()));
 
         // When & Then
-        assertTrue(input instanceof ListValue);
+        assertInstanceOf(ListValue.class, input);
         verifyCanEncodeAndDecode(input);
     }
 
@@ -197,7 +198,7 @@ class ScalarTypeIT {
     @ParameterizedTest
     @MethodSource("mapToTest")
     void shouldEchoMap(Value input) {
-        assertTrue(input instanceof MapValue);
+        assertInstanceOf(MapValue.class, input);
         // When & Then
         verifyCanEncodeAndDecode(input);
     }
@@ -214,7 +215,7 @@ class ScalarTypeIT {
     private Stream<Value> toValueStream(Stream<Arguments> arguments) {
         return arguments.map(arg -> {
             Object obj = arg.get()[0];
-            assertTrue(obj instanceof Value);
+            assertInstanceOf(Value.class, obj);
             return (Value) obj;
         });
     }

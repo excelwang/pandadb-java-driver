@@ -36,10 +36,6 @@ import static org.neo4j.driver.AccessMode.WRITE;
 import static org.neo4j.driver.SessionConfig.builder;
 import static org.neo4j.driver.SessionConfig.forDatabase;
 import static org.neo4j.driver.internal.DatabaseNameUtil.database;
-import static org.neo4j.driver.internal.DatabaseNameUtil.defaultDatabase;
-import static org.neo4j.driver.internal.InternalBookmark.empty;
-import static org.neo4j.driver.internal.handlers.pulln.FetchSizeUtil.UNLIMITED_FETCH_SIZE;
-import static org.neo4j.driver.internal.logging.DevNullLogging.DEV_NULL_LOGGING;
 import static org.neo4j.driver.internal.util.Futures.completedWithNull;
 
 import io.netty.buffer.ByteBuf;
@@ -74,13 +70,11 @@ import org.mockito.verification.VerificationMode;
 import org.neo4j.driver.*;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.internal.BoltServerAddress;
-import org.neo4j.driver.internal.DefaultBookmarkHolder;
-import org.neo4j.driver.internal.async.NetworkSession;
-import org.neo4j.driver.internal.async.connection.EventLoopGroupFactory;
 import org.neo4j.driver.internal.handlers.BeginTxResponseHandler;
 import org.neo4j.driver.internal.messaging.BoltProtocol;
 import org.neo4j.driver.internal.messaging.BoltProtocolVersion;
 import org.neo4j.driver.internal.messaging.Message;
+import org.neo4j.driver.internal.messaging.panda.PandaProtocol;
 import org.neo4j.driver.internal.messaging.request.BeginMessage;
 import org.neo4j.driver.internal.messaging.request.CommitMessage;
 import org.neo4j.driver.internal.messaging.request.PullMessage;
@@ -92,18 +86,15 @@ import org.neo4j.driver.internal.messaging.v41.BoltProtocolV41;
 import org.neo4j.driver.internal.messaging.v42.BoltProtocolV42;
 import org.neo4j.driver.internal.messaging.v43.BoltProtocolV43;
 import org.neo4j.driver.internal.messaging.v44.BoltProtocolV44;
-import org.neo4j.driver.internal.retry.RetryLogic;
 import org.neo4j.driver.internal.spi.Connection;
-import org.neo4j.driver.internal.spi.ConnectionProvider;
 import org.neo4j.driver.internal.spi.ResponseHandler;
 //import org.neo4j.driver.internal.util.FixedRetryLogic;
 import org.neo4j.driver.internal.util.ServerVersion;
-import org.reactivestreams.Publisher;
 //import reactor.core.publisher.Flux;
 //import reactor.core.publisher.Mono;
 
 public final class TestUtil {
-    public static final BoltProtocolVersion DEFAULT_TEST_PROTOCOL_VERSION = BoltProtocolV4.VERSION;
+    public static final BoltProtocolVersion DEFAULT_TEST_PROTOCOL_VERSION = PandaProtocol.VERSION;
     public static final BoltProtocol DEFAULT_TEST_PROTOCOL = BoltProtocol.forVersion(DEFAULT_TEST_PROTOCOL_VERSION);
 
     private static final long DEFAULT_WAIT_TIME_MS = MINUTES.toMillis(2);
@@ -428,7 +419,8 @@ public final class TestUtil {
                 || version.equals(BoltProtocolV41.VERSION)
                 || version.equals(BoltProtocolV42.VERSION)
                 || version.equals(BoltProtocolV43.VERSION)
-                || version.equals(BoltProtocolV44.VERSION)) {
+                || version.equals(BoltProtocolV44.VERSION)
+                || version.equals(PandaProtocol.VERSION)) {
             setupSuccessResponse(connection, CommitMessage.class);
             setupSuccessResponse(connection, RollbackMessage.class);
             setupSuccessResponse(connection, BeginMessage.class);

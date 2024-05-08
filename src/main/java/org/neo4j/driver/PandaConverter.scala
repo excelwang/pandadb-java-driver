@@ -1,6 +1,10 @@
 package org.neo4j.driver
 
+import com.google.protobuf.ByteString
+import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer, LynxValueSerializer}
+import org.grapheco.pandadb.network.Query.{QueryRequest, QueryResponse}
 import org.grapheco.lynx.types.LynxValue
+import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{HasProperty, LynxNode, LynxPath, LynxRelationship}
 import org.neo4j.driver.internal.{InternalNode, InternalPath, InternalRelationship}
 import org.neo4j.driver.internal.value.{NodeValue, PathValue, RelationshipValue}
@@ -10,6 +14,10 @@ import scala.collection.JavaConverters._
 
 object PandaConverter {//TODO directly from protobuffer to neovalue
 
+  private lazy val lynxDeserializer = new LynxValueDeserializer()
+  private lazy val lynxSerializer = new LynxValueSerializer()
+  private lazy val byteBuf = LynxByteBufFactory.getByteBuf
+
   def toNeoValue(lynxValue: LynxValue): Value = lynxValue match {
     case n: LynxNode => toNodeValue(n) //TODO lynxElement should have id.
     case r: LynxRelationship => toRelationValue(r)
@@ -17,7 +25,29 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
     case lv: LynxValue => Values.value(lv.value) //todo add point, time etc
   }
 
-  private def toNodeValue(n: LynxNode): NodeValue = {
+  def convertResponse(r: QueryResponse): Record = {
+    lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes.toByteArray)) match {
+      case map: LynxMap => {
+        if (map.value.isEmpty) return null
+        new PandaRecord(map.value)
+      }
+      case _ => throw new Exception("QueryResponse is not a Map")
+    }
+  }
+
+  def convertQuery(query: Query): QueryRequest = {
+    val qb = QueryRequest.newBuilder.setStatement(query.text)
+    query.parameters.asMap().forEach((k, v) => {
+      val nv = v match {
+        case l: List[Any] => lynxSerializer.encodeAny(l.toArray) //TODO change lynx source code.
+        case v => lynxSerializer.encodeAny(v)
+      }
+      qb.putParameters(k, ByteString.copyFrom(nv))
+    })
+    qb.build()
+  }
+
+  private def toNodeValue(n: LynxNode) = {
     val id = n.id.toLynxInteger.v
     val labels = n.labels.map(_.value)
     val node = new InternalNode(id, labels.asJavaCollection, fetchEntituProps(n))

@@ -68,8 +68,8 @@ class QueryIT {
     @Test
     void shouldRunWithParameters() {
         // When
-        session.run("CREATE (n:FirstNode {name:$name})", parameters("name", "Steven"));
-
+        var r =session.run("CREATE (n:FirstNode {name:$name})", parameters("name", "Steven"));
+        System.out.println(r);
         // Then nothing should've failed
     }
 

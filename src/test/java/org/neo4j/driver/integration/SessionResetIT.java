@@ -153,7 +153,7 @@ class SessionResetIT {
     private void resetSessionAfterTimeout(Session session, int timeout) {
         executor.submit(() -> {
             try {
-                Thread.sleep(timeout * 1000); // let the query execute for timeout seconds
+                Thread.sleep(timeout * 1000L); // let the query execute for timeout seconds
             } catch (InterruptedException ignore) {
             } finally {
                 session.reset(); // reset the session after timeout

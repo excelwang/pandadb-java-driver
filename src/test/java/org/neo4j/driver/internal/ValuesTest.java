@@ -88,19 +88,19 @@ class ValuesTest {
     void shouldConvertPrimitiveArrays() {
         assertThat(value(new short[] {1, 2, 3}), equalTo(new ListValue(values(1, 2, 3))));
 
-        assertThat(value(new int[] {1, 2, 3}), equalTo(new ListValue(values(1, 2, 3))));
+        assertThat(value(1, 2, 3), equalTo(new ListValue(values(1, 2, 3))));
 
         assertThat(value(new long[] {1, 2, 3}), equalTo(new ListValue(values(1, 2, 3))));
 
-        assertThat(value(new float[] {1.1f, 2.2f, 3.3f}), equalTo(new ListValue(values(1.1f, 2.2f, 3.3f))));
+        assertThat(value(1.1f, 2.2f, 3.3f), equalTo(new ListValue(values(1.1f, 2.2f, 3.3f))));
 
-        assertThat(value(new double[] {1.1, 2.2, 3.3}), equalTo(new ListValue(values(1.1, 2.2, 3.3))));
+        assertThat(value(1.1, 2.2, 3.3), equalTo(new ListValue(values(1.1, 2.2, 3.3))));
 
-        assertThat(value(new boolean[] {true, false, true}), equalTo(new ListValue(values(true, false, true))));
+        assertThat(value(true, false, true), equalTo(new ListValue(values(true, false, true))));
 
-        assertThat(value(new char[] {'a', 'b', 'c'}), equalTo(new ListValue(values('a', 'b', 'c'))));
+        assertThat(value('a', 'b', 'c'), equalTo(new ListValue(values('a', 'b', 'c'))));
 
-        assertThat(value(new String[] {"a", "b", "c"}), equalTo(new ListValue(values("a", "b", "c"))));
+        assertThat(value("a", "b", "c"), equalTo(new ListValue(values("a", "b", "c"))));
     }
 
     @Test
@@ -278,7 +278,7 @@ class ValuesTest {
         Value val = value(collection);
 
         // When/Then
-        assertThat(val.asList(), Matchers.<Object>containsInAnyOrder("hello", "world"));
+        assertThat(val.asList(), Matchers.containsInAnyOrder("hello", "world"));
     }
 
     @Test
@@ -288,7 +288,7 @@ class ValuesTest {
         Value val = value(iterator);
 
         // When/Then
-        assertThat(val.asList(), Matchers.<Object>containsInAnyOrder("hello", "world"));
+        assertThat(val.asList(), Matchers.containsInAnyOrder("hello", "world"));
     }
 
     @Test
