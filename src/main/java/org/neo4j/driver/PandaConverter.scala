@@ -39,7 +39,7 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
     val qb = QueryRequest.newBuilder.setStatement(query.text)
     query.parameters.asMap().forEach((k, v) => {
       val nv = v match {
-        case l: List[Any] => lynxSerializer.encodeAny(l.toArray) //TODO change lynx source code.
+        case l: java.util.List[AnyRef] => lynxSerializer.encodeAny(l.toArray) //TODO change lynx source code.
         case v => lynxSerializer.encodeAny(v)
       }
       qb.putParameters(k, ByteString.copyFrom(nv))
