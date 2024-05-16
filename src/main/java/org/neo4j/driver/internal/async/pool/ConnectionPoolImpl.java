@@ -19,20 +19,19 @@
 package org.neo4j.driver.internal.async.pool;
 
 import static java.lang.String.format;
-import static org.neo4j.driver.internal.async.connection.ChannelAttributes.setAuthorizationStateListener;
 import static org.neo4j.driver.internal.async.connection.PandaChannelAttributes.setPoolId;
 import static org.neo4j.driver.internal.util.Futures.combineErrors;
 import static org.neo4j.driver.internal.util.Futures.completeWithNullIfNoError;
 import static org.neo4j.driver.internal.util.LockUtil.executeWithLock;
 import static org.neo4j.driver.internal.util.LockUtil.executeWithLockAsync;
 
-import io.grpc.ManagedChannel;
+
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.channel.DefaultChannelId;
 import org.neo4j.driver.internal.async.connection.PandaChannelAttributes;
+import org.neo4j.driver.internal.async.inbound.InboundMessageDispatcher;
 import org.neo4j.driver.internal.messaging.panda.PandaProtocol;
 import org.neo4j.driver.internal.shaded.io.netty.bootstrap.Bootstrap;
-import org.neo4j.driver.internal.shaded.io.netty.channel.Channel;
-import org.neo4j.driver.internal.shaded.io.netty.channel.EventLoopGroup;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -62,6 +61,8 @@ public class ConnectionPoolImpl implements ConnectionPool {
     private final int connectionAcquisitionTimeout = 10; // s
     private final int awaitTerminationTimeout = 10; // s
     private final Logger log;
+    private final Clock clock;
+    private final Logging logging;
     private final MetricsListener metricsListener;
     private final ReadWriteLock addressToPoolLock = new ReentrantReadWriteLock();
     private final Map<BoltServerAddress, ExecutorService> addressToPool = new HashMap<>();
@@ -77,7 +78,9 @@ public class ConnectionPoolImpl implements ConnectionPool {
             Clock clock,
             boolean ownsEventLoopGroup) {
         this.metricsListener = metricsListener;
+        this.logging = logging;
         this.log = logging.getLog(getClass());
+        this.clock = clock;
     }
 
     @Override
@@ -96,7 +99,6 @@ public class ConnectionPoolImpl implements ConnectionPool {
             try {
                 processAcquisitionError(pool, address, error);
                 assertNotClosed(address, pool);
-//                setAuthorizationStateListener(channel, channelHealthChecker);
                 metricsListener.afterAcquiredOrCreated(address.toString(), acquireEvent);
                 return connection;
             } finally {
@@ -211,8 +213,12 @@ public class ConnectionPoolImpl implements ConnectionPool {
     private PandaNetworkConnection createPandaNetworkConnection(BoltServerAddress address, ExecutorService pool) {
         var managedChannel = NettyChannelBuilder.forAddress(address.host(), address.port()).usePlaintext().build();
         setPoolId(managedChannel, address.toString());
+        PandaChannelAttributes.setChannelId(managedChannel, DefaultChannelId.newInstance());
         PandaChannelAttributes.setServerAddress(managedChannel, address);
         PandaChannelAttributes.setServerVersion(managedChannel, ServerVersion.panda);
+        PandaChannelAttributes.setCreationTimestamp(managedChannel, clock.millis());
+//        PandaChannelAttributes.setAuthorizationStateListener(managedChannel, channelHealthChecker);
+        PandaChannelAttributes.setMessageDispatcher(managedChannel, new InboundMessageDispatcher(managedChannel, logging));
         return new PandaNetworkConnection(managedChannel, pool, null, metricsListener, null);
     }
 

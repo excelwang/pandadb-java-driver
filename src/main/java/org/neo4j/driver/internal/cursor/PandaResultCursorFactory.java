@@ -91,7 +91,7 @@ public class PandaResultCursorFactory implements ResultCursorFactory {//TODO sup
     @Override
     public CompletionStage<AsyncResultCursor> asyncResult() {
         // only write and flush messages when async result is wanted.
-//        connection.write(runMessage, runHandler); // queues the run message, will be flushed with pull message together
+        connection.write(null, runHandler); // queues the run message, will be flushed with pull message together
         pullAllHandler.prePopulateRecords();
         return runFuture.handle((ignored, error) ->
                 new DisposableAsyncResultCursor(new AsyncResultCursorImpl(error, runHandler, pullAllHandler)));
@@ -99,7 +99,7 @@ public class PandaResultCursorFactory implements ResultCursorFactory {//TODO sup
 
     @Override
     public CompletionStage<RxResultCursor> rxResult() {
-//        connection.writeAndFlush(runMessage, runHandler);
+        connection.writeAndFlush(null, runHandler);
         return runFuture.handle((ignored, error) -> new RxResultCursorImpl(error, runHandler, pullHandler));
     }
 }

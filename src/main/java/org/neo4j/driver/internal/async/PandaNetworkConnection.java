@@ -34,6 +34,7 @@ import org.neo4j.driver.Logger;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.PandaConverter;
 import org.neo4j.driver.internal.BoltServerAddress;
+import org.neo4j.driver.internal.async.inbound.InboundMessageDispatcher;
 import org.neo4j.driver.internal.messaging.panda.PandaProtocol;
 import org.neo4j.driver.internal.async.connection.PandaChannelAttributes;
 import org.neo4j.driver.internal.messaging.BoltProtocol;
@@ -53,6 +54,7 @@ public class PandaNetworkConnection implements Connection {
 //    private final Logger log;
     private final ManagedChannel channel;
     private final PandaQueryServiceGrpc.PandaQueryServiceStub stub;
+    private final InboundMessageDispatcher messageDispatcher;
     private final String serverAgent;
     private final BoltServerAddress serverAddress;
     private final ServerVersion serverVersion;
@@ -80,7 +82,7 @@ public class PandaNetworkConnection implements Connection {
 //        this.log = logging.getLog(getClass());
         this.channel = channel;
         this.stub =  PandaQueryServiceGrpc.newStub(channel);
-//        this.messageDispatcher = PandaChannelAttributes.messageDispatcher(channel);
+        this.messageDispatcher = PandaChannelAttributes.messageDispatcher(channel);
         this.serverAgent = PandaChannelAttributes.serverAgent(channel);
         this.serverAddress = PandaChannelAttributes.serverAddress(channel);
         this.serverVersion = PandaChannelAttributes.serverVersion(channel);
@@ -139,6 +141,7 @@ public class PandaNetworkConnection implements Connection {
 //        if (verifyOpen(handler, null)) {
 //            writeMessageInEventLoop(message, handler, false);
 //        }
+        messageDispatcher.enqueue(handler);
     }
 
     @Override
@@ -146,6 +149,8 @@ public class PandaNetworkConnection implements Connection {
 //        if (verifyOpen(handler1, handler2)) {
 //            writeMessagesInEventLoop(message1, handler1, message2, handler2, false);
 //        }
+        messageDispatcher.enqueue(handler1);
+        messageDispatcher.enqueue(handler2);
     }
 
     @Override
@@ -154,6 +159,7 @@ public class PandaNetworkConnection implements Connection {
 //            writeMessageInEventLoop(message, handler, true);
 //        }
         // TODO this.stub.writeMessage();
+        messageDispatcher.enqueue(handler);
     }
 
     @Override
@@ -250,7 +256,7 @@ public class PandaNetworkConnection implements Connection {
 //                channel.write(message, channel.voidPromise());
 //            }
 //        });
-
+//
 //    }
 
 //    private void writeMessagesInEventLoop(

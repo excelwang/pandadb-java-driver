@@ -21,6 +21,7 @@ package org.neo4j.driver.internal.async.connection;
 import static io.netty.util.AttributeKey.newInstance;
 
 import io.grpc.Channel;
+import io.netty.channel.ChannelId;
 import io.netty.util.AttributeKey;
 
 import java.util.*;
@@ -34,6 +35,7 @@ import org.neo4j.driver.internal.util.ServerVersion;
 public final class PandaChannelAttributes {
 
     private static final HashMap<Channel, HashMap<Object, Object>> channelMetaMap = new HashMap<>();
+    private static final AttributeKey<ChannelId> CHANNEL_ID = newInstance("channelId");
     private static final AttributeKey<String> CONNECTION_ID = newInstance("connectionId");
     private static final AttributeKey<String> POOL_ID = newInstance("poolId");
     private static final AttributeKey<BoltProtocolVersion> PROTOCOL_VERSION = newInstance("protocolVersion");
@@ -53,6 +55,14 @@ public final class PandaChannelAttributes {
     private static final AttributeKey<Long> CONNECTION_READ_TIMEOUT = newInstance("connectionReadTimeout");
 
     private PandaChannelAttributes() {}
+
+    public static ChannelId channelId(Channel channel) {
+        return get(channel, CHANNEL_ID);
+    }
+
+    public static void setChannelId(Channel channel, ChannelId id) {
+        setOnce(channel, CHANNEL_ID, id);
+    }
 
     public static String connectionId(Channel channel) {
         return get(channel, CONNECTION_ID);

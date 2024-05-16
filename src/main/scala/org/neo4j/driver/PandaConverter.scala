@@ -1,5 +1,6 @@
 package org.neo4j.driver
 
+import com.google.common.collect.Maps
 import com.google.protobuf.ByteString
 import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer, LynxValueSerializer}
 import org.grapheco.lynx.types.LynxValue
@@ -36,11 +37,11 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
   }
 
 
-  def convertResponse2NeoValues(r: QueryResponse): Array[Value] = {
+  def convertResponse2NeoValues(r: QueryResponse): (java.util.List[String], Array[Value]) = {
     lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes.toByteArray)) match {
       case map: LynxMap => {
-        if (map.value.isEmpty) return Array.empty[Value]
-        map.value.mapValues(toNeoValue(_)).values.toArray
+        val neoMap = map.value.mapValues(toNeoValue)
+        (neoMap.keys.toList.asJava, neoMap.values.toArray)
       }
       case _ => throw new Exception("QueryResponse is not a Map")
     }

@@ -480,7 +480,9 @@ public class PandaPullAllResponseHandler implements PullAllResponseHandler, Stre
      */
     @Override
     public void onNext(QueryResponse value) {
-        var fields = PandaConverter.convertResponse2NeoValues(value);
+        var map = PandaConverter.convertResponse2NeoValues(value);
+        var keys = map._1;
+        Value[] fields = map._2;
         State newState;
         Record record = null;
         synchronized (this) {
@@ -488,7 +490,7 @@ public class PandaPullAllResponseHandler implements PullAllResponseHandler, Stre
             state.onRecord(this, fields);
             newState = state;
             if (newState == State.STREAMING_STATE) {
-                record = new InternalRecord(runResponseHandler.queryKeys(), fields);
+                record = new InternalRecord(keys, fields);
                 if (syncSignals) {
                     recordConsumer.accept(record, null);
                 }

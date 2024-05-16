@@ -61,7 +61,7 @@ public class DatabaseExtension implements ExecutionCondition, BeforeEachCallback
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-//        TestUtil.cleanDb(driver);
+        TestUtil.cleanDb(driver);
         System.out.println("beforeEach");
     }
 
