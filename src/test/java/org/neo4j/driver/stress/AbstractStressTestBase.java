@@ -25,7 +25,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.async.AsyncTransaction;
 import org.neo4j.driver.async.ResultCursor;
-import org.neo4j.driver.PandaDriver;
+import org.neo4j.driver.internal.InternalDriver;
 import org.neo4j.driver.internal.logging.DevNullLogger;
 import org.neo4j.driver.internal.util.Futures;
 import org.neo4j.driver.internal.util.Iterables;
@@ -70,13 +70,13 @@ abstract class AbstractStressTestBase<C extends AbstractContext> {
     private LoggerNameTrackingLogging logging;
     private ExecutorService executor;
 
-    PandaDriver driver;
+    InternalDriver driver;
 
     @BeforeEach
     void setUp() {
         logging = new LoggerNameTrackingLogging();
 
-        driver = (PandaDriver) GraphDatabase.driver(databaseUri(), authToken(), config());
+        driver = (InternalDriver) GraphDatabase.driver(databaseUri(), authToken(), config());
 
         ThreadFactory threadFactory = new DaemonThreadFactory(getClass().getSimpleName() + "-worker-");
         executor = Executors.newCachedThreadPool(threadFactory);
@@ -512,7 +512,7 @@ abstract class AbstractStressTestBase<C extends AbstractContext> {
         System.out.println("Reading nodes with async API took: " + NANOSECONDS.toMillis(end - start) + "ms");
     }
 
-    private Bookmark createNodesRx(int batchCount, int batchSize, PandaDriver driver) {
+    private Bookmark createNodesRx(int batchCount, int batchSize, InternalDriver driver) {
         long start = System.nanoTime();
 
         RxSession session = driver.rxSession();
@@ -537,7 +537,7 @@ abstract class AbstractStressTestBase<C extends AbstractContext> {
                 }));
     }
 
-    private void readNodesRx(PandaDriver driver, Bookmark bookmark, int expectedNodeCount) {
+    private void readNodesRx(InternalDriver driver, Bookmark bookmark, int expectedNodeCount) {
         long start = System.nanoTime();
 
         RxSession session = driver.rxSession(builder().withBookmarks(bookmark).build());

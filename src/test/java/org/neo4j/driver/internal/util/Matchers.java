@@ -18,7 +18,6 @@
  */
 package org.neo4j.driver.internal.util;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -27,9 +26,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.internal.BoltServerAddress;
 import org.neo4j.driver.internal.DirectConnectionProvider;
-import org.neo4j.driver.PandaDriver;
-import org.neo4j.driver.internal.SessionFactory;
-import org.neo4j.driver.internal.SessionFactoryImpl;
 import org.neo4j.driver.internal.cluster.loadbalancing.LoadBalancer;
 import org.neo4j.driver.internal.spi.ConnectionProvider;
 import org.neo4j.driver.summary.ResultSummary;

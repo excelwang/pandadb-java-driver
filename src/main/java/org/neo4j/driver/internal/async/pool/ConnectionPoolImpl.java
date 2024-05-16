@@ -28,6 +28,8 @@ import static org.neo4j.driver.internal.util.LockUtil.executeWithLockAsync;
 
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
+import org.neo4j.driver.internal.async.connection.PandaChannelAttributes;
+import org.neo4j.driver.internal.messaging.panda.PandaProtocol;
 import org.neo4j.driver.internal.shaded.io.netty.bootstrap.Bootstrap;
 import org.neo4j.driver.internal.shaded.io.netty.channel.Channel;
 import org.neo4j.driver.internal.shaded.io.netty.channel.EventLoopGroup;
@@ -52,6 +54,7 @@ import org.neo4j.driver.internal.spi.Connection;
 import org.neo4j.driver.internal.spi.ConnectionPool;
 import org.neo4j.driver.internal.util.Clock;
 import org.neo4j.driver.internal.util.Futures;
+import org.neo4j.driver.internal.util.ServerVersion;
 import org.neo4j.driver.net.ServerAddress;
 
 public class ConnectionPoolImpl implements ConnectionPool {
@@ -132,7 +135,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
 
     @Override
     public int inUseConnections(ServerAddress address) {
-        return ((ThreadPoolExecutor)getPool(address)).getActiveCount();
+        return ((ThreadPoolExecutor)getPool(address)).getActiveCount();//todo use true connection cnt.
     }
 
     @Override
@@ -208,6 +211,8 @@ public class ConnectionPoolImpl implements ConnectionPool {
     private PandaNetworkConnection createPandaNetworkConnection(BoltServerAddress address, ExecutorService pool) {
         var managedChannel = NettyChannelBuilder.forAddress(address.host(), address.port()).usePlaintext().build();
         setPoolId(managedChannel, address.toString());
+        PandaChannelAttributes.setServerAddress(managedChannel, address);
+        PandaChannelAttributes.setServerVersion(managedChannel, ServerVersion.panda);
         return new PandaNetworkConnection(managedChannel, pool, null, metricsListener, null);
     }
 

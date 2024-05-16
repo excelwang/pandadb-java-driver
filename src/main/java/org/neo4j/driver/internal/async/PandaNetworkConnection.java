@@ -27,12 +27,12 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.grpc.stub.StreamObserver;
 import org.grapheco.pandadb.network.PandaQueryServiceGrpc;
 import org.neo4j.driver.Query;
 import org.neo4j.driver.Logger;
 import org.neo4j.driver.Logging;
 import org.neo4j.driver.PandaConverter;
-import org.neo4j.driver.PandaResult;
 import org.neo4j.driver.internal.BoltServerAddress;
 import org.neo4j.driver.internal.messaging.panda.PandaProtocol;
 import org.neo4j.driver.internal.async.connection.PandaChannelAttributes;
@@ -52,7 +52,7 @@ import org.neo4j.driver.internal.util.ServerVersion;
 public class PandaNetworkConnection implements Connection {
 //    private final Logger log;
     private final ManagedChannel channel;
-    private final PandaQueryServiceGrpc.PandaQueryServiceBlockingStub stub;
+    private final PandaQueryServiceGrpc.PandaQueryServiceStub stub;
     private final String serverAgent;
     private final BoltServerAddress serverAddress;
     private final ServerVersion serverVersion;
@@ -79,7 +79,7 @@ public class PandaNetworkConnection implements Connection {
         this.pool = pool;
 //        this.log = logging.getLog(getClass());
         this.channel = channel;
-        this.stub =  PandaQueryServiceGrpc.newBlockingStub(channel);
+        this.stub =  PandaQueryServiceGrpc.newStub(channel);
 //        this.messageDispatcher = PandaChannelAttributes.messageDispatcher(channel);
         this.serverAgent = PandaChannelAttributes.serverAgent(channel);
         this.serverAddress = PandaChannelAttributes.serverAddress(channel);
@@ -118,9 +118,13 @@ public class PandaNetworkConnection implements Connection {
         throw new UnsupportedOperationException();
     }
 
-    public PandaResult query(Query query) {
-        var pq = PandaConverter.convertQuery(query);
-        return new PandaResult(stub.query(pq));
+//    public PandaResult query(Query query) {
+//        var pq = PandaConverter.convertQuery(query);
+//        return new PandaResult(stub.query(pq), pool);
+//    }
+
+    public void queryAsync(Query query, StreamObserver<org.grapheco.pandadb.network.Query.QueryResponse> so) {
+        stub.query(PandaConverter.convertQuery(query), so);
     }
 
     @Override
@@ -171,6 +175,7 @@ public class PandaNetworkConnection implements Connection {
 
     @Override
     public CompletionStage<Void> release() {
+        System.out.println("release pandanetworkconnection");
         if (status.compareAndSet(Status.OPEN, Status.RELEASED)) {
             channel.shutdown(); //TODO channel.writeAndFlush(ResetMessage.RESET)
             PandaChannelAttributes.purgeChannel(channel);

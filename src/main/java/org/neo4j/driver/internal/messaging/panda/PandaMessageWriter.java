@@ -51,6 +51,7 @@ public class PandaMessageWriter extends AbstractMessageWriter {
 
     public PandaMessageWriter(PackOutput output) {
         super(new PandaValuePacker(output, false), buildEncoders());
+        System.out.println("PandaMessageWriter");
     }
 
     private static Map<Byte, MessageEncoder> buildEncoders() {

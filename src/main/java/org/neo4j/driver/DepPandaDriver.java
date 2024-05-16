@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
-public class PandaDriver implements Driver{
+public class DepPandaDriver implements Driver{
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final Logging logging;
@@ -22,7 +22,7 @@ public class PandaDriver implements Driver{
     private PandaQueryServiceGrpc.PandaQueryServiceStub stub = null;
     private PandaQueryServiceGrpc.PandaQueryServiceBlockingStub blockingStub = null;
 
-    public PandaDriver(String host, int port, Logging logging){
+    public DepPandaDriver(String host, int port, Logging logging){
         this.channel = NettyChannelBuilder.forAddress(host, port).usePlaintext().build();
         this.logging = logging;
         this.log = logging.getLog(getClass());

@@ -1,47 +1,32 @@
 package org.neo4j.driver.internal.messaging.panda;
 
-import static org.neo4j.driver.internal.async.connection.ChannelAttributes.messageDispatcher;
-import static org.neo4j.driver.internal.handlers.PullHandlers.newBoltV4AutoPullHandler;
 import static org.neo4j.driver.internal.handlers.PullHandlers.newBoltV4BasicPullHandler;
 import static org.neo4j.driver.internal.messaging.request.CommitMessage.COMMIT;
 import static org.neo4j.driver.internal.messaging.request.RollbackMessage.ROLLBACK;
-import static org.neo4j.driver.internal.messaging.request.RunWithMetadataMessage.autoCommitTxRunMessage;
-import static org.neo4j.driver.internal.messaging.request.RunWithMetadataMessage.unmanagedTxRunMessage;
 
 import org.neo4j.driver.*;
 import org.neo4j.driver.internal.BookmarkHolder;
-import org.neo4j.driver.internal.DatabaseName;
 import org.neo4j.driver.internal.async.PandaNetworkConnection;
 import org.neo4j.driver.internal.async.UnmanagedTransaction;
 import org.neo4j.driver.internal.async.connection.DirectConnection;
-import org.neo4j.driver.internal.async.inbound.InboundMessageDispatcher;
 import org.neo4j.driver.internal.cluster.RoutingContext;
 import org.neo4j.driver.internal.cursor.PandaResultCursorFactory;
 import org.neo4j.driver.internal.cursor.ResultCursorFactory;
-import org.neo4j.driver.internal.cursor.ResultCursorFactoryImpl;
 import org.neo4j.driver.internal.handlers.*;
-import org.neo4j.driver.internal.handlers.pulln.AutoPullResponseHandler;
-import org.neo4j.driver.internal.handlers.pulln.BasicPullResponseHandler;
+import org.neo4j.driver.internal.handlers.pulln.PandaPullAllResponseHandler;
 import org.neo4j.driver.internal.handlers.pulln.PullResponseHandler;
 import org.neo4j.driver.internal.messaging.BoltProtocol;
 import org.neo4j.driver.internal.messaging.BoltProtocolVersion;
 import org.neo4j.driver.internal.messaging.MessageFormat;
 import org.neo4j.driver.internal.messaging.request.BeginMessage;
-import org.neo4j.driver.internal.messaging.request.GoodbyeMessage;
-import org.neo4j.driver.internal.messaging.request.HelloMessage;
-import org.neo4j.driver.internal.messaging.request.RunWithMetadataMessage;
 import org.neo4j.driver.internal.messaging.v3.BoltProtocolV3;
-import org.neo4j.driver.internal.messaging.v44.BoltProtocolV44;
-import org.neo4j.driver.internal.security.InternalAuthToken;
 import org.neo4j.driver.internal.shaded.io.netty.channel.Channel;
 import org.neo4j.driver.internal.shaded.io.netty.channel.ChannelPromise;
 import org.neo4j.driver.internal.spi.Connection;
-import org.neo4j.driver.internal.util.Futures;
 import org.neo4j.driver.internal.util.MetadataExtractor;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 
 public class PandaProtocol implements BoltProtocol {
     public static final BoltProtocolVersion VERSION = new BoltProtocolVersion(4, 100);
@@ -135,6 +120,7 @@ public class PandaProtocol implements BoltProtocol {
 //                bookmarkHolder.getBookmark(),
 //                connection.impersonatedUser(),
 //                logging);
+        System.out.println("runInAutoCommitTransaction");
         return buildResultCursorFactory(connection, query, bookmarkHolder, null, fetchSize);
     }
 
@@ -152,18 +138,24 @@ public class PandaProtocol implements BoltProtocol {
             UnmanagedTransaction tx,
             long fetchSize) {
 //        CompletableFuture<Void> runFuture = new CompletableFuture<>();
+        var pc = (PandaNetworkConnection)((DirectConnection) connection).connection();
 
+        var runFuture = CompletableFuture.runAsync(()->{} , pc.getPool());
+        RunResponseHandler runHandler = new RunResponseHandler(runFuture, METADATA_EXTRACTOR, connection, tx);
 //        var cf = CompletableFuture.supplyAsync(() -> stub.query(PandaConverter.convertQuery(query)));//TODO pass exception
 //        return cf.thenApply(response -> new PandaResult(response)).exceptionally(throwable -> {
 //            throw new ClientException(throwable.getMessage());
 //        });
-        var pc = (PandaNetworkConnection)((DirectConnection) connection).connection();
-        var pr = pc.query(query);
 
-//        PullAllResponseHandler pullAllHandler =
-//                newBoltV4AutoPullHandler(query, runHandler, connection, bookmarkHolder, tx, fetchSize);
-//        PullResponseHandler pullHandler = newBoltV4BasicPullHandler(query, runHandler, connection, bookmarkHolder, tx);
-        return new PandaResultCursorFactory(pc, pr);//, runFuture);
+        PandaPullAllResponseHandler pullAllHandler =
+                newPandaPullAllHandler(query, runHandler, pc, bookmarkHolder, tx, fetchSize);
+        pc.queryAsync(query, pullAllHandler);//TODO move to proper func
+        PullResponseHandler pullHandler = newBoltV4BasicPullHandler(query, runHandler, connection, bookmarkHolder, tx);
+//        return new PandaResultCursorFactory(pc, pr, runHandler, runFuture, pullHandler, pullAllHandler);
+
+        System.out.println("buildResultCursorFactory");
+        return new PandaResultCursorFactory(pc, runHandler, runFuture, pullHandler, pullAllHandler);
+//        return new ResultCursorFactoryImpl(connection, runMessage, runHandler, runFuture, pullHandler, pullAllHandler);
     }
 
 
@@ -174,6 +166,7 @@ public class PandaProtocol implements BoltProtocol {
      */
     @Override
     public MessageFormat createMessageFormat() {
+        System.out.println("createMessageFormat");
         return new PandaMessageFormat();
     }
 
@@ -185,6 +178,27 @@ public class PandaProtocol implements BoltProtocol {
     @Override
     public BoltProtocolVersion version() {
         return VERSION;
+    }
+
+    public static PandaPullAllResponseHandler newPandaPullAllHandler(
+            Query query,
+            RunResponseHandler runHandler,
+            PandaNetworkConnection connection,
+            BookmarkHolder bookmarkHolder,
+            UnmanagedTransaction tx,
+            long fetchSize) {
+        PullResponseCompletionListener completionListener =
+                createPullResponseCompletionListener(connection, bookmarkHolder, tx);
+
+        return new PandaPullAllResponseHandler(
+                query, runHandler, connection, BoltProtocolV3.METADATA_EXTRACTOR, completionListener, fetchSize);
+    }
+
+    private static PullResponseCompletionListener createPullResponseCompletionListener(
+            Connection connection, BookmarkHolder bookmarkHolder, UnmanagedTransaction tx) {
+        return tx != null
+                ? new TransactionPullResponseCompletionListener(tx)
+                : new SessionPullResponseCompletionListener(connection, bookmarkHolder);
     }
 
 }

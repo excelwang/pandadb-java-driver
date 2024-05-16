@@ -2,12 +2,12 @@ package org.neo4j.driver
 
 import com.google.protobuf.ByteString
 import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer, LynxValueSerializer}
-import org.grapheco.pandadb.network.Query.{QueryRequest, QueryResponse}
 import org.grapheco.lynx.types.LynxValue
 import org.grapheco.lynx.types.composite.LynxMap
 import org.grapheco.lynx.types.structural.{HasProperty, LynxNode, LynxPath, LynxRelationship}
-import org.neo4j.driver.internal.{InternalNode, InternalPath, InternalRelationship}
+import org.grapheco.pandadb.network.Query.{QueryRequest, QueryResponse}
 import org.neo4j.driver.internal.value.{NodeValue, PathValue, RelationshipValue}
+import org.neo4j.driver.internal.{InternalNode, InternalPath, InternalRelationship}
 import org.neo4j.driver.types.Entity
 
 import scala.collection.JavaConverters._
@@ -25,7 +25,7 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
     case lv: LynxValue => Values.value(lv.value) //todo add point, time etc
   }
 
-  def convertResponse(r: QueryResponse): Record = {
+  def convertResponse2NeoRecord(r: QueryResponse): Record = {
     lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes.toByteArray)) match {
       case map: LynxMap => {
         if (map.value.isEmpty) return null
@@ -35,11 +35,22 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
     }
   }
 
+
+  def convertResponse2NeoValues(r: QueryResponse): Array[Value] = {
+    lynxDeserializer.decodeLynxValue(byteBuf.writeBytes(r.getResultInBytes.toByteArray)) match {
+      case map: LynxMap => {
+        if (map.value.isEmpty) return Array.empty[Value]
+        map.value.mapValues(toNeoValue(_)).values.toArray
+      }
+      case _ => throw new Exception("QueryResponse is not a Map")
+    }
+  }
+
   def convertQuery(query: Query): QueryRequest = {
     val qb = QueryRequest.newBuilder.setStatement(query.text)
     query.parameters.asMap().forEach((k, v) => {
       val nv = v match {
-        case l: java.util.List[AnyRef] => lynxSerializer.encodeAny(l.toArray) //TODO change lynx source code.
+        case l: java.util.List[Any] => lynxSerializer.encodeAny(l.toArray) //TODO change lynx source code.
         case v => lynxSerializer.encodeAny(v)
       }
       qb.putParameters(k, ByteString.copyFrom(nv))

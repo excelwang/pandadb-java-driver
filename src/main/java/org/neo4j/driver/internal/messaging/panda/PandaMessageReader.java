@@ -35,6 +35,7 @@ public class PandaMessageReader implements MessageFormat.Reader {
 
     public PandaMessageReader(PackInput input, boolean dateTimeUtcEnabled) {
         this(new PandaValueUnpacker(input, dateTimeUtcEnabled));
+        System.out.println("PandaMessageReader");
     }
 
     protected PandaMessageReader(ValueUnpacker unpacker) {
