@@ -85,22 +85,26 @@ public class PandaProtocol implements BoltProtocol {
         CompletableFuture<Void> beginTxFuture = new CompletableFuture<>();
         BeginMessage beginMessage = new BeginMessage(
                 bookmark, config, connection.databaseName(), connection.mode(), connection.impersonatedUser(), logging);
-        connection.writeAndFlush(beginMessage, new BeginTxResponseHandler(beginTxFuture));
-        return beginTxFuture;
+        connection.writeAndFlush(beginMessage, new BeginTxResponseHandler(beginTxFuture));//todo send beginMessage to server
+//        return beginTxFuture;
+        return CompletableFuture.runAsync(()->{});
     }
 
     @Override
     public CompletionStage<Bookmark> commitTransaction(Connection connection) {
         CompletableFuture<Bookmark> commitFuture = new CompletableFuture<>();
         connection.writeAndFlush(COMMIT, new CommitTxResponseHandler(commitFuture));
-        return commitFuture;
+//        return commitFuture;
+        return CompletableFuture.completedStage(null);
     }
 
     @Override
     public CompletionStage<Void> rollbackTransaction(Connection connection) {
         CompletableFuture<Void> rollbackFuture = new CompletableFuture<>();
         connection.writeAndFlush(ROLLBACK, new RollbackTxResponseHandler(rollbackFuture));
-        return rollbackFuture;
+//        return rollbackFuture;
+
+        return CompletableFuture.completedStage(null);
     }
 
     @Override
