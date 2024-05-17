@@ -1,10 +1,9 @@
 package org.neo4j.driver
 
-import com.google.common.collect.Maps
 import com.google.protobuf.ByteString
 import org.grapheco.lynx.lynxrpc.{LynxByteBufFactory, LynxValueDeserializer, LynxValueSerializer}
 import org.grapheco.lynx.types.LynxValue
-import org.grapheco.lynx.types.composite.LynxMap
+import org.grapheco.lynx.types.composite.{LynxMap, LynxList}
 import org.grapheco.lynx.types.structural.{HasProperty, LynxNode, LynxPath, LynxRelationship}
 import org.grapheco.pandadb.network.Query.{QueryRequest, QueryResponse}
 import org.neo4j.driver.internal.value.{NodeValue, PathValue, RelationshipValue}
@@ -23,7 +22,12 @@ object PandaConverter {//TODO directly from protobuffer to neovalue
     case n: LynxNode => toNodeValue(n) //TODO lynxElement should have id.
     case r: LynxRelationship => toRelationValue(r)
     case p: LynxPath => new PathValue(new InternalPath(p.elements.map(e => toNeoValue(e.asInstanceOf[LynxValue]).asInstanceOf[Entity]).asJava)) //TODO lynxElement should be LynxValue.
-    case lv: LynxValue => Values.value(lv.value) //todo add point, time etc
+    case lv: LynxValue => {
+      lv match {
+        case LynxList(v: List[LynxValue]) => Values.value(v.map(_.value).asJava)
+        case _ => Values.value(lv.value)
+      }
+    } //todo add point, time etc
   }
 
   def convertResponse2NeoRecord(r: QueryResponse): Record = {
